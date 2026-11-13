@@ -11,11 +11,32 @@ CXXFLAGSextra ?=
 # user may define the compiler
 CXX ?= g++
 
+# project layout
+SRCDIR   := src
+INCDIR   := include
+BUILDDIR := build
+BINDIR   := bin
+EXTDIR   := external
+
+# vendored third-party libraries
+HTSLIB_DIR := $(EXTDIR)/htslib
+HTSLIB_LIB := $(HTSLIB_DIR)/libhts.a
+OPAL_DIR   := $(EXTDIR)/opal
+OPAL_OBJ   := $(BUILDDIR)/opal/opal.o
+
+# include/ holds project headers; src/ is still needed for VERSION;
+# external/ provides the htslib/, opal/ and SimpleGoodTuring/ headers;
+# build/ holds the generated parametersDefault.xxd
+CPPFLAGS_include := -I$(INCDIR) -I$(SRCDIR) -I$(EXTDIR) -I$(BUILDDIR)
+
+# generate a .d dependency file next to each object
+DEPFLAGS := -MMD -MP
+
 # pre-defined flags
-LDFLAGS_shared := -pthread -Lhtslib -Bstatic -lhts -Bdynamic -lz
-LDFLAGS_static := -static -static-libgcc -pthread -Lhtslib -lhts -lz
-LDFLAGS_Mac :=-pthread -lz htslib/libhts.a
-LDFLAGS_Mac_static :=-pthread -lz -static-libgcc htslib/libhts.a
+LDFLAGS_shared := -pthread -L$(HTSLIB_DIR) -Bstatic -lhts -Bdynamic -lz
+LDFLAGS_static := -static -static-libgcc -pthread -L$(HTSLIB_DIR) -lhts -lz
+LDFLAGS_Mac :=-pthread -lz $(HTSLIB_LIB)
+LDFLAGS_Mac_static :=-pthread -lz -static-libgcc $(HTSLIB_LIB)
 LDFLAGS_gdb := $(LDFLAGS_shared)
 
 DATE_FMT = --iso-8601=seconds
@@ -50,11 +71,11 @@ CXXFLAGS_main := -O3 $(CXXFLAGS_common)
 CXXFLAGS_gdb := -O0 -g3 $(CXXFLAGS_common)
 
 ##########################################################################################################
-OBJECTS = systemFunctions.o funPrimaryAlignMark.o \
-	SoloFeature_collapseUMI_Graph.o SoloFeature_collapseUMIall.o ParametersClip_initialize.o ClipMate_clip.o ClipCR4.o opal/opal.o ClipMate_clipChunk.o ClipMate_initialize.o \
+OBJECT_NAMES = systemFunctions.o funPrimaryAlignMark.o \
+	SoloFeature_collapseUMI_Graph.o SoloFeature_collapseUMIall.o ParametersClip_initialize.o ClipMate_clip.o ClipCR4.o ClipMate_clipChunk.o ClipMate_initialize.o \
 	SoloFeature_loadRawMatrix.o SoloFeature_emptyDrops_CR.o soloInputFeatureUMI.o SoloFeature_countSmartSeq.o SoloFeature_redistributeReadsByCB.o \
 	SoloFeature_quantTranscript.o SoloFeature_sumThreads.o SoloFeature_countVelocyto.o SoloFeature_countCBgeneUMI.o \
-	Transcriptome_classifyAlign.o Transcriptome_geneFullAlignOverlap_ExonOverIntron.o Transcriptome_alignExonOverlap.cpp \
+	Transcriptome_classifyAlign.o Transcriptome_geneFullAlignOverlap_ExonOverIntron.o Transcriptome_alignExonOverlap.o \
 	SoloFeature_cellFiltering.o \
 	SoloFeature_statsOutput.o bamSortByCoordinate.o SoloBarcode.o \
 	ParametersSolo.o SoloRead.o SoloRead_record.o \
@@ -75,125 +96,123 @@ OBJECTS = systemFunctions.o funPrimaryAlignMark.o \
 	ReadAlignChunk.o ReadAlignChunk_processChunks.o ReadAlignChunk_mapChunk.o \
 	OutSJ.o outputSJ.o blocksOverlap.o ThreadControl.o sysRemoveDir.o \
 	ReadAlign_maxMappableLength2strands.o binarySearch2.o\
-	ReadAlign_outputTranscriptSAM.o ReadAlign_outputTranscriptSJ.o ReadAlign_outputTranscriptCIGARp.o ReadAlign_calcCIGAR.cpp \
+	ReadAlign_outputTranscriptSAM.o ReadAlign_outputTranscriptSJ.o ReadAlign_outputTranscriptCIGARp.o ReadAlign_calcCIGAR.o \
 	ReadAlign_createExtendWindowsWithAlign.o ReadAlign_assignAlignToWindow.o ReadAlign_oneRead.o \
 	ReadAlign_stitchWindowSeeds.o \
 	ReadAlign_peOverlapMergeMap.o ReadAlign_mappedFilter.o \
 	ParametersChimeric_initialize.o ReadAlign_chimericDetection.o ReadAlign_chimericDetectionOld.o ReadAlign_chimericDetectionOldOutput.o\
 	ChimericDetection.o ChimericDetection_chimericDetectionMult.o ReadAlign_chimericDetectionPEmerged.o \
 	stitchWindowAligns.o extendAlign.o stitchAlignToTranscript.o \
-	ChimericSegment.cpp ChimericAlign.cpp ChimericAlign_chimericJunctionOutput.o ChimericAlign_chimericBAMoutput.o ChimericAlign_chimericStitching.o \
+	ChimericSegment.o ChimericAlign.o ChimericAlign_chimericJunctionOutput.o ChimericAlign_chimericBAMoutput.o ChimericAlign_chimericStitching.o \
 	Genome_genomeGenerate.o genomeParametersWrite.o genomeScanFastaFiles.o genomeSAindex.o \
 	Genome_insertSequences.o insertSeqSA.o funCompareUintAndSuffixes.o funCompareUintAndSuffixesMemcmp.o \
 	TimeFunctions.o ErrorWarning.o streamFuns.o stringSubstituteAll.o \
 	Transcriptome.o Transcriptome_quantAlign.o Transcriptome_geneFullAlignOverlap.o \
 	ReadAlign_quantTranscriptome.o Quantifications.o Transcriptome_geneCountsAddAlign.o \
 	sjdbLoadFromFiles.o sjdbLoadFromStream.o sjdbPrepare.o sjdbBuildIndex.o sjdbInsertJunctions.o mapThreadsSpawn.o \
-	Parameters_readFilesInit.o Parameters_openReadsFiles.cpp Parameters_closeReadsFiles.cpp Parameters_readSAMheader.o \
-	bam_cat.o serviceFuns.o GlobalVariables.cpp \
+	Parameters_readFilesInit.o Parameters_openReadsFiles.o Parameters_closeReadsFiles.o Parameters_readSAMheader.o \
+	bam_cat.o serviceFuns.o GlobalVariables.o \
 	BAMoutput.o BAMfunctions.o ReadAlign_alignBAM.o BAMbinSortByCoordinate.o signalFromBAM.o bamRemoveDuplicates.o BAMbinSortUnmapped.o
 
-SOURCES := $(wildcard *.cpp) $(wildcard *.c)
+OBJECTS := $(addprefix $(BUILDDIR)/,$(OBJECT_NAMES)) $(OPAL_OBJ)
 
+# objects include htslib headers, so build htslib first (order-only)
+$(BUILDDIR)/%.o : $(SRCDIR)/%.cpp | $(HTSLIB_LIB)
+	@mkdir -p $(@D)
+	@echo Compiling $@...
+	@$(CXX) -c $(DEPFLAGS) $(CPPFLAGS_include) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
-%.o : %.cpp
-	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) $<
-
-%.o : %.c
-	$(CXX) -c $(CPPFLAGS) $(CFLAGS) $<
+$(BUILDDIR)/%.o : $(SRCDIR)/%.c | $(HTSLIB_LIB)
+	@mkdir -p $(@D)
+	$(CXX) -c $(DEPFLAGS) $(CPPFLAGS_include) $(CPPFLAGS) $(CFLAGS) $< -o $@
 
 all: cleanCompileInfo STAR$(SFX)
 
-opal/opal.o : opal/opal.cpp opal/opal.h
-	cd opal && \
-	$(CXX) -c -I./ -std=c++11 $(CPPFLAGS) $(CXXFLAGS) $(CXXFLAGSextra) $(CXXFLAGS_SIMD) opal.cpp
+$(OPAL_OBJ) : $(OPAL_DIR)/opal.cpp
+	@mkdir -p $(@D)
+	$(CXX) -c $(DEPFLAGS) -I$(OPAL_DIR) -std=c++11 $(CPPFLAGS) $(CXXFLAGS) $(CXXFLAGSextra) $(CXXFLAGS_SIMD) $< -o $@
+
+$(BINDIR):
+	mkdir -p $@
 
 .PHONY: clean
 clean:
-	'rm' -f *.o opal/opal.o STAR STARstatic STARlong Depend.list parametersDefault.xxd
+	'rm' -rf $(BUILDDIR) $(BINDIR)
 
 .PHONY: CLEAN
 CLEAN: clean
-	$(MAKE) -C htslib clean
+	$(MAKE) -C $(HTSLIB_DIR) clean
 
 
 .PHONY: clean_solo
 clean_solo:
-	'rm' -f Solo*.o
+	'rm' -f $(BUILDDIR)/Solo*.o $(BUILDDIR)/Solo*.d
 
 .PHONY: cleanCompileInfo
 cleanCompileInfo:
-	'rm' -f STAR.o Parameters.o
+	'rm' -f $(BUILDDIR)/STAR.o $(BUILDDIR)/Parameters.o
 
-ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),CLEAN)
-ifneq ($(MAKECMDGOALS),CLEAN)
-ifneq ($(MAKECMDGOALS),clean_solo)
-ifneq ($(MAKECMDGOALS),STARforMac)
-ifneq ($(MAKECMDGOALS),STARforMacGDB)
-Depend.list: $(SOURCES) parametersDefault.xxd htslib
-	echo $(SOURCES)
-	'rm' -f ./Depend.list
-	$(CXX) $(CXXFLAGS_common) -MM $^ >> Depend.list
-include Depend.list
-endif
-endif
-endif
-endif
-endif
-endif
+-include $(OBJECTS:.o=.d)
 
-htslib : htslib/libhts.a
+.PHONY: htslib
+htslib : $(HTSLIB_LIB)
 
-htslib/libhts.a :
-	$(MAKE) -C htslib lib-static
+$(HTSLIB_LIB) :
+	$(MAKE) -C $(HTSLIB_DIR) lib-static
 
-parametersDefault.xxd: parametersDefault
-	xxd -i parametersDefault > parametersDefault.xxd
+# run xxd from inside source/ so the generated array is named parametersDefault
+$(BUILDDIR)/parametersDefault.xxd: $(SRCDIR)/parametersDefault
+	@mkdir -p $(@D)
+	cd $(SRCDIR) && xxd -i parametersDefault > $(CURDIR)/$@
+
+$(BUILDDIR)/STAR.o $(BUILDDIR)/Parameters.o: $(BUILDDIR)/parametersDefault.xxd
+
+# link targets are named after the build variant, not the output file
+.PHONY: STAR$(SFX) STARstatic$(SFX) STARlong$(SFX) STARlongStatic$(SFX) POSIXSHARED gdb gdb-long STARforMacStatic STARlongForMacStatic
 
 STAR$(SFX) : CXXFLAGS := $(CXXFLAGSextra) $(CXXFLAGS_main) $(CXXFLAGS)
 STAR$(SFX) : LDFLAGS := $(LDFLAGSextra) $(LDFLAGS_shared) $(LDFLAGS)
-STAR$(SFX) : Depend.list parametersDefault.xxd $(OBJECTS)
-	$(CXX) -o STAR$(SFX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
+STAR$(SFX) : $(OBJECTS) $(HTSLIB_LIB) | $(BINDIR)
+	$(CXX) -o $(BINDIR)/STAR$(SFX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
 
 STARstatic$(SFX) : CXXFLAGS := $(CXXFLAGSextra) $(CXXFLAGS_main) $(CXXFLAGS)
 STARstatic$(SFX) : LDFLAGS := $(LDFLAGSextra) $(LDFLAGS_static) $(LDFLAGS)
-STARstatic$(SFX) : Depend.list parametersDefault.xxd $(OBJECTS)
-	$(CXX) -o STAR$(SFX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
+STARstatic$(SFX) : $(OBJECTS) $(HTSLIB_LIB) | $(BINDIR)
+	$(CXX) -o $(BINDIR)/STAR$(SFX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
 
 STARlong$(SFX) : CXXFLAGS := $(CXXFLAGSextra) $(CXXFLAGS_main) -D'COMPILE_FOR_LONG_READS' $(CXXFLAGS)
 STARlong$(SFX) : LDFLAGS := $(LDFLAGSextra) $(LDFLAGS_shared) $(LDFLAGS)
-STARlong$(SFX) : Depend.list parametersDefault.xxd $(OBJECTS)
-	$(CXX) -o STARlong$(SFX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
+STARlong$(SFX) : $(OBJECTS) $(HTSLIB_LIB) | $(BINDIR)
+	$(CXX) -o $(BINDIR)/STARlong$(SFX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
 
 STARlongStatic$(SFX) : CXXFLAGS := $(CXXFLAGSextra) $(CXXFLAGS_main) -D'COMPILE_FOR_LONG_READS' $(CXXFLAGS)
 STARlongStatic$(SFX) : LDFLAGS := $(LDFLAGSextra) $(LDFLAGS_static) $(LDFLAGS)
-STARlongStatic$(SFX) : Depend.list parametersDefault.xxd $(OBJECTS)
-	$(CXX) -o STARlong$(SFX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
+STARlongStatic$(SFX) : $(OBJECTS) $(HTSLIB_LIB) | $(BINDIR)
+	$(CXX) -o $(BINDIR)/STARlong$(SFX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
 
 
 
 POSIXSHARED : CXXFLAGS := $(CXXFLAGSextra) $(CXXFLAGS_main) -DPOSIX_SHARED_MEM $(CXXFLAGS)
 POSIXSHARED : LDFLAGS := $(LDFLAGSextra) $(LDFLAGS_shared) $(LDFLAGS)
-POSIXSHARED : Depend.list parametersDefault.xxd $(OBJECTS)
-	$(CXX) -o STAR$(SFX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
+POSIXSHARED : $(OBJECTS) $(HTSLIB_LIB) | $(BINDIR)
+	$(CXX) -o $(BINDIR)/STAR$(SFX) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
 
 gdb : CXXFLAGS := $(CXXFLAGSextra) $(CXXFLAGS_gdb) $(CXXFLAGS)
 gdb : LDFLAGS := $(LDFLAGSextra) $(LDFLAGS_gdb) $(LDFLAGS)
-gdb : Depend.list parametersDefault.xxd $(OBJECTS)
-	$(CXX) -o STAR $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
+gdb : $(OBJECTS) $(HTSLIB_LIB) | $(BINDIR)
+	$(CXX) -o $(BINDIR)/STAR $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
 
 gdb-long : CXXFLAGS := $(CXXFLAGSextra) $(CXXFLAGS_gdb) -D'COMPILE_FOR_LONG_READS' $(CXXFLAGS)
 gdb-long : LDFLAGS := $(LDFLAGSextra) $(LDFLAGS_gdb) $(LDFLAGS)
-gdb-long : Depend.list parametersDefault.xxd $(OBJECTS)
-	$(CXX) -o STARlong $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
+gdb-long : $(OBJECTS) $(HTSLIB_LIB) | $(BINDIR)
+	$(CXX) -o $(BINDIR)/STARlong $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
 
 STARforMacStatic : CXXFLAGS := $(CXXFLAGSextra) $(CXXFLAGS_main) -D'COMPILE_FOR_MAC' $(CXXFLAGS)
 STARforMacStatic : LDFLAGS := $(LDFLAGSextra) $(LDFLAGS_Mac_static) $(LDFLAGS)
-STARforMacStatic : Depend.list parametersDefault.xxd $(OBJECTS)
-	$(CXX) -o STAR $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
+STARforMacStatic : $(OBJECTS) $(HTSLIB_LIB) | $(BINDIR)
+	$(CXX) -o $(BINDIR)/STAR $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
 
 STARlongForMacStatic : CXXFLAGS := -D'COMPILE_FOR_LONG_READS' $(CXXFLAGSextra) $(CXXFLAGS_main) -D'COMPILE_FOR_MAC' $(CXXFLAGS)
 STARlongForMacStatic : LDFLAGS := $(LDFLAGSextra) $(LDFLAGS_Mac_static) $(LDFLAGS)
-STARlongForMacStatic : Depend.list parametersDefault.xxd $(OBJECTS)
-	$(CXX) -o STARlong $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)
+STARlongForMacStatic : $(OBJECTS) $(HTSLIB_LIB) | $(BINDIR)
+	$(CXX) -o $(BINDIR)/STARlong $(CXXFLAGS) $(OBJECTS) $(LDFLAGS)

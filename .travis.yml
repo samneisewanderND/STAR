@@ -11,7 +11,5 @@ install:
 
 git:
   submodules: false
-before_script:
-  - cd source
 script:
   - make STAR

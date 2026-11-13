@@ -25,7 +25,10 @@ https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf
 DIRECTORY CONTENTS
 ==================
   * source: all source files required for compilation
-  * bin: pre-compiled executables for Linux and Mac OS X
+  * include: header files
+  * dist: pre-compiled executables for Linux and Mac OS X
+  * build: object files produced when compiling from source (created by make)
+  * bin: executables compiled from source (created by make)
   * doc: documentation
   * extras: miscellaneous files and scripts
 
@@ -49,8 +52,8 @@ Compile under Linux
 -------------------
 
 ```bash
-# Compile
-cd STAR/source
+# Compile (the executable is written to bin/STAR)
+cd STAR
 make STAR
 ```
 For processors that do not support AVX extensions, specify the target SIMD architecture, e.g.
@@ -67,12 +70,11 @@ Compile under Mac OS X
 # 2. Install gcc with brew:
 $ brew install gcc
 # 3. Build STAR:
-# run 'make' in the source directory
+# run 'make' in the top-level STAR directory
 # note that the path to c++ executable has to be adjusted to its current version
-$cd source
 $make STARforMacStatic CXX=/usr/local/Cellar/gcc/8.2.0/bin/g++-8
 # 4. Make it availible through the terminal
-$cp STAR /usr/local/bin
+$cp bin/STAR /usr/local/bin
 ```
 
 All platforms - non-standard gcc
@@ -80,11 +82,10 @@ All platforms - non-standard gcc
 
 If g++ compiler (true g++, not Clang sym-link) is not on the path, you will need to tell `make` where to find it:
 ```bash
-cd source
 make STARforMacStatic CXX=/path/to/gcc
 ```
 
-If employing STAR only on a single machine or a homogeneously setup cluster, you may aim at helping the compiler to optimize in way that is tailored to your platform. The flags LDFLAGSextra and CXXFLAGSextra are appended to the default optimizations specified in source/Makefile.
+If employing STAR only on a single machine or a homogeneously setup cluster, you may aim at helping the compiler to optimize in way that is tailored to your platform. The flags LDFLAGSextra and CXXFLAGSextra are appended to the default optimizations specified in the top-level Makefile.
 ```
 # platform-specific optimization for gcc/g++
 make CXXFLAGSextra=-march=native

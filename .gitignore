@@ -1,5 +1,10 @@
 *.o
+*.d
 Depend.list
+
+# build outputs: objects go to build/, locally built binaries to bin/
+/build/
+/bin/
 
 .project
 .kdev4/
@@ -15,8 +20,7 @@ extras/doc-latex/*.out
 extras/doc-latex/*.gz
 extras/doc-latex/*.toc
 
-# Don't track the STAR binary once it has being built
-source/STAR
+
 .DS_Store
 *.xcworkspacedata
 *.pbxproj

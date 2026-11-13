@@ -53,9 +53,9 @@ dobin@cshl.edu}
 \section{Getting started.}
 \subsection{Installation.}
 
-STAR source code and binaries can be downloaded from GitHub: named releases from \url{https://github.com/alexdobin/STAR/releases}, or the master branch from \url{https://github.com/alexdobin/STAR}. The pre-compiled STAR executables are  located \code{bin/} subdirectory. The \code{static} executables are the easisest to use, as they are statically compiled and are not dependents on external libraries.
+STAR source code and binaries can be downloaded from GitHub: named releases from \url{https://github.com/alexdobin/STAR/releases}, or the master branch from \url{https://github.com/alexdobin/STAR}. The pre-compiled STAR executables are  located \code{dist/} subdirectory. The \code{static} executables are the easisest to use, as they are statically compiled and are not dependents on external libraries.
 
-To compile STAR from sources run \code{make} in the source directory for a Linux-like environment, or run \code{make STARforMac} for Mac OS X. This will produce the executable \code{'STAR'} inside the source directory.
+To compile STAR from sources run \code{make} in the top-level STAR directory for a Linux-like environment, or run \code{make STARforMacStatic} for Mac OS X. This will produce the executable \code{'STAR'} inside the \code{bin/} directory, with object files in \code{build/}.
 
 \subsubsection{Installation - in depth and troubleshooting.}
 STAR is compiled with gcc c++ compiler and depends only on standard gcc libraries. Some generic instructions on installing correct gcc environments are given below.
