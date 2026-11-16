@@ -1,0 +1,3 @@
+job_id,gpu_seed_search,threads,gpu,wall_s,mapping_speed_Mreads_per_hour,reads_seeded_gpu,reads_seeded_cpu_fallback,gpu_wait_s
+22246637,No,32,NVIDIA A100-SXM4-40GB,129,333.33,,,
+22246637,Yes,32,NVIDIA A100-SXM4-40GB,100,423.53,10000000,0,22.5889
