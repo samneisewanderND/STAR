@@ -26,8 +26,14 @@ void ReadAlignChunk::mapChunk() {//map one chunk. Input reads stream has to be s
         chunkOutBAMfile.open(chunkOutBAMfileName.c_str());
     };
 
+    if (RA->gpuSeed!=NULL)
+        RA->gpuSeed->reset();
+
     int readStatus=0;
     while (readStatus==0) {//main cycle over all reads
+
+        if (RA->gpuSeed!=NULL && gpuSeedActive() && RA->gpuSeed->next >= RA->gpuSeed->nReads)
+            RA->gpuSeedPrepareBatch(); //seed search for the next batch of reads on the GPU
 
         readStatus=RA->oneRead(); //map one read
 

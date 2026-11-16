@@ -4,6 +4,8 @@
 #include "ErrorWarning.h"
 
 void mapThreadsSpawn (Parameters &P, ReadAlignChunk** RAchunk) {
+    gpuSeedGenomeSync(RAchunk[0]->mapGen, P); //copy the genome index to the GPU if needed (--gpuSeedSearch Yes)
+
     for (int ithread=1;ithread<P.runThreadN;ithread++) {//spawn threads
         int threadStatus=pthread_create(&g_threadChunks.threadArray[ithread], NULL, &g_threadChunks.threadRAprocessChunks, (void *) RAchunk[ithread]);
         if (threadStatus>0) {//something went wrong with one of threads

@@ -593,6 +593,14 @@ seedSplitMin                12
 seedMapMin              5
     int>0: min length of seeds to be mapped
 
+gpuSeedSearch           No
+    string: run the seed search (maximum mappable prefix search in the suffix array) on an NVIDIA GPU. Requires STAR compiled with CUDA support (make CUDA=1).
+                        No  ... seed search on the CPU
+                        Yes ... seed search on the GPU. The genome index (Genome, SA, SAindex) is copied into the GPU memory. The GPU is selected with the CUDA_VISIBLE_DEVICES environment variable. The alignments are identical to the CPU seed search.
+
+gpuSeedBatchReads       65536
+    int>0: maximum number of reads per GPU seed search batch (per thread). Batches are also limited by the input chunk size (--limitIObufferSize).
+
 alignIntronMin              21
     int: minimum intron size, genomic gap is considered intron if its length>=alignIntronMin, otherwise it is considered Deletion
 

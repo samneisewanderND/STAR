@@ -278,6 +278,8 @@ void ReadAlignChunk::processChunks() {//read-map-write chunks
     };
     if (P.runThreadN>1) pthread_mutex_lock(&g_threadChunks.mutexLogMain);
     P.inOut->logMain << "Completed: thread #" <<iThread <<endl;
+    if (RA->gpuSeed!=NULL)
+        RA->gpuSeed->logStats(P.inOut->logMain, iThread);
     if (P.runThreadN>1) pthread_mutex_unlock(&g_threadChunks.mutexLogMain);
 };
 

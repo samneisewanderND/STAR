@@ -17,6 +17,9 @@ ReadAlignChunk::ReadAlignChunk(Parameters& Pin, Genome &genomeIn, Transcriptome 
 
     RA->iRead=0;
 
+    if (P.gpuSeed.yes) //GPU seed search; the device buffers are allocated on first use
+        RA->gpuSeed = new GpuSeedBatch(P);
+
     chunkIn=new char* [P.readNends];
     readInStream=new istringstream* [P.readNends];
     

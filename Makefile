@@ -32,9 +32,24 @@ CPPFLAGS_include := -I$(INCDIR) -I$(SRCDIR) -I$(EXTDIR) -I$(BUILDDIR)
 # generate a .d dependency file next to each object
 DEPFLAGS := -MMD -MP
 
+# CUDA (GPU seed search, --gpuSeedSearch Yes): build with "make CUDA=1"
+# CUDA_ARCH defaults to A100 (sm_80); e.g. use CUDA_ARCH="-gencode arch=compute_90,code=sm_90" for H100
+CUDA ?= 0
+NVCC ?= nvcc
+CUDA_HOME ?= $(patsubst %/bin/nvcc,%,$(shell which $(NVCC) 2>/dev/null))
+CUDA_ARCH ?= -gencode arch=compute_80,code=sm_80 -gencode arch=compute_80,code=compute_80
+NVCCFLAGS ?= -O3 -lineinfo
+ifeq ($(CUDA),1)
+    GPU_OBJECT_NAMES := GpuSeedDevice.o
+    LDFLAGS_cuda := -L$(CUDA_HOME)/lib64 -lcudart_static -ldl -lrt
+else
+    GPU_OBJECT_NAMES := GpuSeedDevice_stub.o
+    LDFLAGS_cuda :=
+endif
+
 # pre-defined flags
-LDFLAGS_shared := -pthread -L$(HTSLIB_DIR) -Bstatic -lhts -Bdynamic -lz
-LDFLAGS_static := -static -static-libgcc -pthread -L$(HTSLIB_DIR) -lhts -lz
+LDFLAGS_shared := -pthread -L$(HTSLIB_DIR) -Bstatic -lhts -Bdynamic -lz $(LDFLAGS_cuda)
+LDFLAGS_static := -static -static-libgcc -pthread -L$(HTSLIB_DIR) -lhts -lz $(LDFLAGS_cuda)
 LDFLAGS_Mac :=-pthread -lz $(HTSLIB_LIB)
 LDFLAGS_Mac_static :=-pthread -lz -static-libgcc $(HTSLIB_LIB)
 LDFLAGS_gdb := $(LDFLAGS_shared)
@@ -112,7 +127,8 @@ OBJECT_NAMES = systemFunctions.o funPrimaryAlignMark.o \
 	sjdbLoadFromFiles.o sjdbLoadFromStream.o sjdbPrepare.o sjdbBuildIndex.o sjdbInsertJunctions.o mapThreadsSpawn.o \
 	Parameters_readFilesInit.o Parameters_openReadsFiles.o Parameters_closeReadsFiles.o Parameters_readSAMheader.o \
 	bam_cat.o serviceFuns.o GlobalVariables.o \
-	BAMoutput.o BAMfunctions.o ReadAlign_alignBAM.o BAMbinSortByCoordinate.o signalFromBAM.o bamRemoveDuplicates.o BAMbinSortUnmapped.o
+	BAMoutput.o BAMfunctions.o ReadAlign_alignBAM.o BAMbinSortByCoordinate.o signalFromBAM.o bamRemoveDuplicates.o BAMbinSortUnmapped.o \
+	GpuSeed.o ReadAlign_gpuSeed.o $(GPU_OBJECT_NAMES)
 
 OBJECTS := $(addprefix $(BUILDDIR)/,$(OBJECT_NAMES)) $(OPAL_OBJ)
 
@@ -125,6 +141,11 @@ $(BUILDDIR)/%.o : $(SRCDIR)/%.cpp | $(HTSLIB_LIB)
 $(BUILDDIR)/%.o : $(SRCDIR)/%.c | $(HTSLIB_LIB)
 	@mkdir -p $(@D)
 	$(CXX) -c $(DEPFLAGS) $(CPPFLAGS_include) $(CPPFLAGS) $(CFLAGS) $< -o $@
+
+$(BUILDDIR)/%.o : $(SRCDIR)/%.cu
+	@mkdir -p $(@D)
+	@echo Compiling $@...
+	@$(NVCC) -c $(DEPFLAGS) -ccbin $(CXX) -std=c++11 $(CUDA_ARCH) $(NVCCFLAGS) $(CPPFLAGS_include) $(CPPFLAGS) $< -o $@
 
 all: cleanCompileInfo STAR$(SFX)
 

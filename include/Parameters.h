@@ -41,6 +41,12 @@ class Parameters {
         struct {
             int32 type;//0 no restart, 1 no mapping - restart from _STARtmp files
         } runRestart; //restart options - in development
+
+        struct {
+            string in;      //--gpuSeedSearch
+            bool yes;
+            uint batchReads; //--gpuSeedBatchReads
+        } gpuSeed; //seed search on the GPU
         
         //parameters
         vector <string> parametersFiles;

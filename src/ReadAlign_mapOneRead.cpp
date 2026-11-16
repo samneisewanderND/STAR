@@ -40,7 +40,8 @@ int ReadAlign::mapOneRead() {
 
     uint seedSearchStartLmax=min(P.seedSearchStartLmax, // 50
                                   (uint) (P.seedSearchStartLmaxOverLread*(Lread-1))); // read length
-    // align all good pieces
+    // align all good pieces: use the GPU seed search results if available, otherwise search on the CPU
+    if (!gpuSeedReplay())
     for (uint ip=0; ip<Nsplit; ip++) {
 
 

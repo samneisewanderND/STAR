@@ -23,6 +23,9 @@ int ReadAlign::oneRead() {//process one read: load, map, write
     if (readStatus[0]==-1) {//finished with the stream
         return -1;
     };    
+
+    //position of this read in the GPU seed batch, if any
+    gpuSeedReadInd = (gpuSeed!=NULL && gpuSeed->next < gpuSeed->nReads) ? (int64) gpuSeed->next++ : -1;
     
     if (P.outFilterBySJoutStage != 2) {
         for (uint32 im=0; im<P.readNmates; im++) {//not readNends: the barcode quality will be calculated separately

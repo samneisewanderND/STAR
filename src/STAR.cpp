@@ -243,7 +243,10 @@ int main(int argInN, char *argIn[])
                      << "RAM after mapping:\n"
                      << linuxProcMemory() << flush;
 
+    gpuSeedLogSummary(P);
+
     // no need for genome anymore, free the memory
+    gpuSeedRelease();
     genomeMain.freeMemory();
 
     // aggregate output junctions

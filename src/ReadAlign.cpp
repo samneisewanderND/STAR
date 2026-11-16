@@ -102,6 +102,10 @@ ReadAlign::ReadAlign (Parameters& Pin, Genome &genomeIn, Transcriptome *TrIn, in
     //clipping
     P.pClip.initializeClipMates(clipMates);
 
+    //GPU seed search: set up by ReadAlignChunk for the main ReadAlign only
+    gpuSeed=NULL;
+    gpuSeedReadInd=-1;
+
     //debug
     {
     #ifdef DEBUG_OutputLastRead

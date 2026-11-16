@@ -10,6 +10,7 @@
 #include "signalFromBAM.h"
 #include "bamRemoveDuplicates.h"
 #include "streamFuns.h"
+#include "GpuSeedDevice.h"
 
 //for mkfifo
 #include <sys/stat.h>
@@ -189,6 +190,8 @@ Parameters::Parameters() {//initalize parameters info
     parArray.push_back(new ParameterInfoScalar <uint>       (-1, -1, "seedSearchLmax", &seedSearchLmax));
     parArray.push_back(new ParameterInfoScalar <uint>       (-1, -1, "seedSearchStartLmax", &seedSearchStartLmax));
     parArray.push_back(new ParameterInfoScalar <double>     (-1, -1, "seedSearchStartLmaxOverLread", &seedSearchStartLmaxOverLread));
+    parArray.push_back(new ParameterInfoScalar <string>     (-1, -1, "gpuSeedSearch", &gpuSeed.in));
+    parArray.push_back(new ParameterInfoScalar <uint>       (-1, -1, "gpuSeedBatchReads", &gpuSeed.batchReads));
 
     parArray.push_back(new ParameterInfoScalar <uint>       (-1, -1, "seedPerReadNmax", &seedPerReadNmax));
     parArray.push_back(new ParameterInfoScalar <uint>       (-1, -1, "seedPerWindowNmax", &seedPerWindowNmax));
@@ -1122,6 +1125,30 @@ void Parameters::inputParameters (int argInN, char* argIn[]) {//input parameters
     } else {
         ostringstream errOut;
         errOut << "EXITING because of fatal PARAMETERS error: unrecognized option in --alignSoftClipAtReferenceEnds   "<<alignSoftClipAtReferenceEnds.in<<"\n";
+        errOut << "SOLUTION: use allowed option: Yes or No";
+        exitWithError(errOut.str(),std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);
+    };
+
+    //GPU seed search
+    if (gpuSeed.in=="Yes") {
+        gpuSeed.yes=true;
+        if (!gpuSeedCompiled()) {
+            ostringstream errOut;
+            errOut << "EXITING because of fatal PARAMETERS error: --gpuSeedSearch Yes requires STAR compiled with CUDA support\n";
+            errOut << "SOLUTION: re-compile STAR with: make CUDA=1   , or use --gpuSeedSearch No";
+            exitWithError(errOut.str(),std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);
+        };
+        if (gpuSeed.batchReads==0) {
+            ostringstream errOut;
+            errOut << "EXITING because of fatal PARAMETERS error: --gpuSeedBatchReads has to be >0\n";
+            errOut << "SOLUTION: use a positive value, e.g. the default 65536";
+            exitWithError(errOut.str(),std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);
+        };
+    } else if (gpuSeed.in=="No") {
+        gpuSeed.yes=false;
+    } else {
+        ostringstream errOut;
+        errOut << "EXITING because of fatal PARAMETERS error: unrecognized option in --gpuSeedSearch   "<<gpuSeed.in<<"\n";
         errOut << "SOLUTION: use allowed option: Yes or No";
         exitWithError(errOut.str(),std::cerr, inOut->logMain, EXIT_CODE_PARAMETER, *this);
     };

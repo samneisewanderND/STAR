@@ -15,6 +15,7 @@
 #include "ReadAnnotations.h"
 #include "SpliceGraph.h"
 #include "ClipMate.h"
+#include "GpuSeed.h"
 
 #include <time.h>
 #include <random>
@@ -86,6 +87,11 @@ class ReadAlign {
         SpliceGraph *splGraph;
         
         vector<vector<ClipMate>> clipMates;
+
+        //GPU seed search
+        GpuSeedBatch *gpuSeed; //NULL if this ReadAlign does not use the GPU seed search
+        int64 gpuSeedReadInd; //index of the current read in the GPU batch, -1 if none
+        void gpuSeedPrepareBatch();
 
 	//input,output
         char** outBAMoneAlign;
@@ -188,6 +194,7 @@ class ReadAlign {
         void mapOneReadSpliceGraph();
         uint maxMappableLength2strands(uint pieceStart, uint pieceLength, uint iDir, uint iSA1, uint iSA2, uint& maxL, uint iFrag);
         void storeAligns (uint iDir, uint Shift, uint Nrep, uint L, uint indStartEnd[2], uint iFrag);
+        bool gpuSeedReplay();
 
         bool outputTranscript(Transcript *trOut, uint nTrOut, ofstream *outBED);
 
